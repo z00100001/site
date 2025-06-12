@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>root@z</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css"/>
+  <style>
+    html, body, #terminal {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+    }
+    .xterm .xterm-viewport::-webkit-scrollbar { display: none; }
+    .xterm .xterm-viewport { scrollbar-width: none; }
+
+    @keyframes glitch-move {
+      0%{transform:translate(0) skew(0);}10%{transform:translate(-5px,-5px) skew(-1deg);}
+      20%{transform:translate(5px,5px) skew(1deg);}30%{transform:translate(-5px,5px) skew(-1deg);}
+      40%{transform:translate(5px,-5px) skew(1deg);}50%{transform:translate(-5px,0) skew(0);}
+      60%{transform:translate(5px,5px) skew(1deg);}70%{transform:translate(-5px,-5px) skew(-1deg);}
+      80%{transform:translate(5px,5px) skew(0);}90%{transform:translate(-5px,5px) skew(-1deg);}
+      100%{transform:translate(0) skew(0);}
+    }
+    @keyframes glitch-flicker {
+      0%,100%{opacity:1;}50%{opacity:0.5;}
+    }
+    .xterm.glitch {
+      animation: glitch-move 0.3s infinite, glitch-flicker 0.1s infinite;
+      filter: invert(1) hue-rotate(180deg);
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+  <script>
+  (async () => {
+    let cfg;
+    try {
+      cfg = await (await fetch('terminal-config.json')).json();
+    } catch (e) {
+      console.error('Failed to load terminal-config.json:', e);
+      cfg = { theme: {}, files: [], projects: [], easterEggs: {}, loadingSteps: [] };
+    }
+
+    const term = new Terminal({
+      cursorBlink: true,
+      theme: {
+        background: cfg.theme.background || '#000000',
+        foreground: cfg.theme.foreground || '#FFFFFF',
+        brightMagenta: cfg.theme.brightMagenta || '#FF00FF'
+      }
+    });
+    const fitAddon = new FitAddon.FitAddon();
+    term.loadAddon(fitAddon);
+    term.open(document.getElementById('terminal'));
+    fitAddon.fit();
+    window.addEventListener('resize', () => fitAddon.fit());
+    term.focus();
+
+    const PURPLE = '\x1b[95m';
+    const RESET  = '\x1b[39m';
+
+ 
+    const fsConfig     = {};
+    const projectLinks = {};
+
+    function normalizeDirPath(rawPath) {
+      if (!rawPath || rawPath === '/') return '/';
+      let p = rawPath.startsWith('/') ? rawPath : '/' + rawPath;
+      if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1);
+      return p;
+    }
+
+    function ensureDir(path) {
+      const normalized = normalizeDirPath(path);
+      if (!fsConfig[normalized]) fsConfig[normalized] = {};
+    }
+    ensureDir('/');
+
+    for (const f of (cfg.files || [])) {
+      const dirPath = normalizeDirPath(f.path); 
+      ensureDir(dirPath);
+      fsConfig[dirPath][f.name] = f.content;
+    }
+
+    ;(cfg.projects || []).forEach(p => {
+      const dir = normalizeDirPath(p.id);   
+      if (!fsConfig['/']) fsConfig['/'] = {};
+      fsConfig['/'][p.id + '/'] = {};
+      ensureDir(dir);
+
+      projectLinks[dir] = { url: p.url, exec: p.exec };
+
+      (p.files || []).forEach(f => {
+        fsConfig[dir][f.name] = f.content;
+      });
+      fsConfig[dir][p.exec] = '';
+    });
+
+    let cwd      = '/';
+    let buffer   = '';
+    let inNano   = false;
+    let nanoBuf  = '';
+    let nanoFile = '';
+
+    function prompt() {
+      term.write(`\r\n${PURPLE}root@z:${cwd}$${RESET} `);
+    }
+    function print(msg) {
+      term.write(`\r\n${msg}`);
+    }
+    function getDir(path) {
+      return fsConfig[normalizeDirPath(path)] || null;
+    }
+    function glitch() {
+      const x = document.querySelector('.xterm');
+      if (!x) return;
+      x.classList.add('glitch');
+      setTimeout(() => x.classList.remove('glitch'), 3000);
+    }
+
+    function runCmd(input) {
+      const [cmd, ...args] = input.trim().split(' ');
+      const full = input.trim();
+
+      if (cfg.easterEggs[full]) {
+        print(cfg.easterEggs[full]);
+        return prompt();
+      }
+      if (cmd === 'fortune' && Array.isArray(cfg.easterEggs.fortune)) {
+        const arr = cfg.easterEggs.fortune;
+        print(arr[Math.floor(Math.random() * arr.length)]);
+        return prompt();
+      }
+
+
+      if (projectLinks[cwd]) {
+        const execName = projectLinks[cwd].exec;
+        const invoked  = cmd.startsWith('./') ? cmd.slice(2) : cmd;
+        if (invoked === execName) {
+          const { url } = projectLinks[cwd];
+          const host = new URL(url).host;
+          (cfg.loadingSteps || []).forEach((step, i) =>
+            setTimeout(() => {
+              print(step.replace('{host}', host).replace('{path}', cwd));
+            }, i * 400)
+          );
+          return setTimeout(() => window.location.href = url,
+                            ((cfg.loadingSteps || []).length * 400 + 300));
+        }
+      }
+
+      switch (cmd) {
+        case 'clear':
+          term.write('\x1b[2J\x1b[3J\x1b[H');
+          break;
+
+        case 'ls': {
+          const d = getDir(cwd);
+          if (d) {
+            const rawNames = Object.keys(d);
+            const names = rawNames.map(name =>
+              name.endsWith('/') ? name.slice(0, -1) : name
+            );
+            if (names.length) {
+              print(names.join('    '));
+            } else {
+              print('[empty]');
+            }
+          } else {
+            print(`bash: ls: ${cwd}: No such directory`);
+          }
+          break;
+        }
+
+        case 'cd': {
+          const dest = args[0] || '/';
+          if (dest === '..') {
+            if (cwd !== '/') {
+              const parts = normalizeDirPath(cwd).split('/').filter(Boolean);
+              parts.pop();
+              cwd = parts.length ? '/' + parts.join('/') : '/';
+            }
+            break;
+          }
+          if (dest === '/') {
+            cwd = '/';
+            break;
+          }
+          let nc = dest.startsWith('/') ? dest : cwd + (cwd.endsWith('/') ? '' : '/') + dest;
+          nc = normalizeDirPath(nc);
+          if (getDir(nc) !== null) {
+            cwd = nc;
+          } else {
+            print(`bash: cd: ${dest}: No such directory`);
+          }
+          break;
+        }
+
+        case 'cat': {
+          const p = args[0] || '';
+          let dirP = cwd, name = p;
+          if (p.includes('/')) {
+            const idx = p.lastIndexOf('/');
+            dirP = normalizeDirPath(p.slice(0, idx));
+            name = p.slice(idx + 1);
+          }
+          const d = getDir(dirP);
+          if (d && typeof d[name] === 'string') {
+            d[name].split('\n').forEach(line => term.write(`\r\n${line}`));
+          } else {
+            print(`bash: cat: ${p}: No such file`);
+          }
+          break;
+        }
+
+        case 'nano': {
+          nanoFile = args[0] || 'untitled.txt';
+          const d = getDir(cwd);
+          nanoBuf = (d && d[nanoFile]) || '';
+          inNano = true;
+          term.write(`\r\n--- EDIT ${nanoFile} (Ctrl+X to save) ---\r\n${nanoBuf}`);
+          return;
+        }
+
+        case 'rm': {
+          if (full === 'rm -rf /' || full === 'sudo rm -rf /') {
+            print('😂 nice one.');
+            glitch();
+          } else {
+            const target = args[0];
+            if (!target) {
+              print('rm: missing operand');
+            } else {
+              const d = getDir(cwd);
+              if (!d) {
+                print(`rm: cannot remove '${target}': No such directory`);
+              } else if (Object.prototype.hasOwnProperty.call(d, target)) {
+                delete d[target];
+              } else {
+                print(`rm: cannot remove '${target}': No such file`);
+              }
+            }
+          }
+          break;
+        }
+
+        default:
+          if (cmd) {
+            print(`bash: ${cmd}: command not found`);
+          }
+      }
+      prompt();
+    }
+
+    term.onKey(e => {
+      const { key, domEvent } = e;
+
+      if (inNano) {
+        if (domEvent.ctrlKey && domEvent.key === 'x') {
+          const d = getDir(cwd);
+          if (d) d[nanoFile] = nanoBuf;
+          inNano = false;
+          print(`\r\nSaved ${nanoFile}`);
+          return prompt();
+        }
+        if (domEvent.key === 'Backspace') {
+          nanoBuf = nanoBuf.slice(0, -1);
+          term.write('\b \b');
+        } else {
+          nanoBuf += key;
+          term.write(key);
+        }
+        return;
+      }
+
+      if (domEvent.key === 'Enter') {
+        runCmd(buffer);
+        buffer = '';
+      } else if (domEvent.key === 'Backspace') {
+        if (buffer) {
+          buffer = buffer.slice(0, -1);
+          term.write('\b \b');
+        }
+      } else {
+        buffer += key;
+        term.write(key);
+      }
+    });
+
+    document.addEventListener('click', () => term.focus());
+    prompt();
+  })();
+  </script>
+</body>
+</html>

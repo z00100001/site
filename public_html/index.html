@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>0θ</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <style>
+    *{ margin:0; padding:0; box-sizing:border-box }
+    html, body {
+      width:100%; height:100%; background:#111; overflow:hidden;
+      font-family:Segoe UI, sans-serif;
+    }
+    svg { position:absolute; top:0; left:0; width:100%; height:100% }
+    .curve-line { stroke:#444; stroke-width:1; opacity:0.5 }
+    .bg-link    { stroke:#666; stroke-width:1; opacity:0.3 }
+    .bg-node {
+      fill:#fff; opacity:0.8;
+      pointer-events:none; cursor:default;
+    }
+    .coord-label {
+      position:absolute; color:#888; font-size:12px; font-family:monospace;
+      pointer-events:none; opacity:0; transition:opacity 5s linear;
+    }
+    .formula {
+      position:absolute; color:#555; opacity:0; pointer-events:none;
+      transition:opacity 2s ease-in-out; z-index:5; white-space:nowrap;
+      font-size:18px;
+    }
+    @keyframes bv{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-8px)}}
+    @keyframes bh{0%,100%{transform:translate(-50%,-50%) translateX(0)}50%{transform:translate(-50%,-50%) translateX(8px)}}
+    .icon-link {
+      position:absolute;
+      width:clamp(70px,14vw,140px);
+      height:clamp(70px,14vw,140px);
+      border-radius:50%; overflow:hidden;
+      transform:translate(-50%,-50%);
+      pointer-events:auto; visibility:hidden;
+      box-shadow:0 0 0 rgba(0,0,0,0);
+      transition:transform .2s ease, box-shadow .2s ease;
+      z-index:3; cursor:pointer; text-decoration:none;
+    }
+    .icon-link img {
+      width:100%; height:100%; object-fit:cover; display:block;
+    }
+    .icon-link:hover {
+      transform:translate(-50%,-50%) scale(0.95);
+      box-shadow:0 0 8px rgba(200,200,200,0.7);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <svg id="bg"><g id="curves"></g><g id="links"></g><g id="nodes"></g></svg>
+  <div id="coordMap"></div>
+  <div id="iconMap"></div>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+    const svg = d3.select("#bg"),
+          W = window.innerWidth, H = window.innerHeight,
+          C = [W/2, H/2],
+          mathR = Math.min(W,H)*0.6;
+
+    svg.attr("width",W).attr("height",H);
+
+    // corner curves
+    (function(s=0.45,n=40){
+      const g=svg.select("#curves"), data=[];
+      g.selectAll("*").remove();
+      for(let i=0;i<=n;i++){
+        const t=i/n;
+        data.push(
+          { x1:(1-s)*W + t*s*W, y1:0,    x2:W, y2:t*s*H },
+          { x1:t*s*W,          y1:H,    x2:0, y2:(1-s)*H + t*s*H }
+        );
+      }
+      g.selectAll("line").data(data).join("line")
+        .attr("class","curve-line")
+        .attr("x1",d=>d.x1).attr("y1",d=>d.y1)
+        .attr("x2",d=>d.x2).attr("y2",d=>d.y2);
+    })();
+
+    // Nodes & links data
+    const N = 50,
+          nodes = d3.range(N).map(i=>({
+            id: i,
+            phase: 2*Math.PI*Math.random(),
+            speed: 0.005 + 0.015*Math.random(),
+            amp:   2 + 4*Math.random()
+          })),
+          links = [];
+    for(let i=0;i<N;i++){
+      for(let j=0;j<2;j++){
+        const t=Math.floor(Math.random()*N);
+        if(t!==i) links.push({ source:i, target:t });
+      }
+    }
+
+    // this is for the node simulation, it used to decay and grow still, now it doesn't.
+    const sim = d3.forceSimulation(nodes)
+      .force("link",   d3.forceLink(links).id(d=>d.id).distance(200).strength(0.2))
+      .force("charge", d3.forceManyBody().strength(-80))
+      .force("center", d3.forceCenter(...C))
+      .force("collision",d3.forceCollide(5))
+      .alphaTarget(0.3)
+      .alphaDecay(0.0001)
+      .velocityDecay(0.2);
+
+    // draw links/nodes
+    const linkG = svg.select("#links").selectAll("line")
+          .data(links).join("line").attr("class","bg-link"),
+          nodeG = svg.select("#nodes").selectAll("circle")
+          .data(nodes).join("circle")
+          .attr("class","bg-node")
+          .attr("r",4);
+
+    sim.on("tick",()=>{
+      const t = performance.now()/500;
+      nodes.forEach(d=>{
+        d.vx += Math.cos(d.phase)*0.02 + (Math.random()-0.5)*0.01;
+        d.vy += Math.sin(d.phase)*0.02 + (Math.random()-0.5)*0.01;
+      });
+      linkG
+        .attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
+        .attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+      nodeG
+        .attr("cx", d=>d.x + Math.sin(t*d.speed + d.phase)*d.amp )
+        .attr("cy", d=>d.y + Math.cos(t*d.speed*1.2 + d.phase)*d.amp );
+    });
+
+    // mouse repel feature
+    let need=false, mx=0, my=0;
+    document.addEventListener("mousemove",e=>{
+      mx=e.clientX; my=e.clientY; need=true;
+    });
+    (function repel(){
+      if(need){
+        nodes.forEach(d=>{
+          const dx=d.x-mx, dy=d.y-my, D=Math.hypot(dx,dy);
+          if(D<200){
+            const s=(200-D)/200*0.5;
+            d.vx += dx/D*s; d.vy += dy/D*s;
+          }
+        });
+        sim.alpha(0.3).restart();
+        need=false;
+      }
+      requestAnimationFrame(repel);
+    })();
+
+    // fading coords
+    const coordMap = document.getElementById("coordMap"),
+          coordList = [];
+    function spawnCoords(){
+      if(coordList.length>6) return;
+      const nd = nodes[Math.floor(Math.random()*nodes.length)],
+            el = document.createElement("div");
+      el.className="coord-label";
+      coordMap.appendChild(el);
+      coordList.push({node:nd,el});
+      requestAnimationFrame(()=>el.style.opacity=0.3);
+      setTimeout(()=>{
+        el.style.opacity=0;
+        setTimeout(()=>{
+          el.remove();
+          const i=coordList.findIndex(c=>c.el===el);
+          coordList.splice(i,1);
+        },2000);
+      },3000);
+    }
+    setInterval(spawnCoords,3000);
+    sim.on("tick.coord",()=>{
+      coordList.forEach(c=>{
+        c.el.textContent = `(${c.node.x.toFixed(1)},${c.node.y.toFixed(1)})`;
+        c.el.style.left = `${c.node.x+8}px`;
+        c.el.style.top  = `${c.node.y-8}px`;
+      });
+    });
+
+    // math formulas
+    const formulas = [
+      '$$e^{i\\pi}+1=0$$',
+      '$$\\frac{d}{dx}e^x=e^x$$',
+      '$$\\int_0^1 x^n\\,dx=\\tfrac1{n+1}$$',
+      '$$F=ma$$','$$E=mc^2$$',
+      '$$\\Delta x\\Delta p\\ge\\tfrac{\\hbar}{2}$$',
+      '$$\\hat y=\\sigma(Wx+b)$$'
+    ];
+    function spawnMath(){
+      let x,y,dx,dy;
+      do {
+        x = Math.random()*W;
+        y = 0.1*H + Math.random()*0.8*H;
+        dx = x-C[0]; dy = y-C[1];
+      } while(Math.hypot(dx,dy)<mathR);
+      const el = document.createElement("div");
+      el.className="formula";
+      el.style.left=`${x}px`; el.style.top=`${y}px`;
+      el.innerHTML = formulas[Math.floor(Math.random()*formulas.length)];
+      document.body.appendChild(el);
+      MathJax.typesetPromise([el]).then(()=>{
+        requestAnimationFrame(()=>el.style.opacity=0.5);
+        setTimeout(()=>el.style.opacity=0,4000);
+        setTimeout(()=>el.remove(),6000);
+      });
+      setTimeout(spawnMath,8000+Math.random()*4000);
+    }
+    setTimeout(spawnMath,6000+Math.random()*2000);
+
+    // logos/links
+    ;(function(){
+      const items = [
+        {src:"img/info.png", url:"https://xn--0-emb.com/info"},
+        {src:"img/github.png", url:"https://github.com/z00100001"},
+        {src:"img/linkedin.png", url:"https://linkedin.com/in/tylerclanton"},
+        {src:"img/terminal.png", url:"https://xn--0-emb.com/terminal"},
+        {src:"img/code.png", url:"https://xn--0-emb.com/projects"},
+        {src:"img/soon.png", url:""},
+        {src:"img/email.png", url:"https://xn--0-emb.com/contactme"}
+      ];
+      const map = document.getElementById("iconMap"),
+            R   = Math.min(C[0],C[1])*0.55;
+      items.forEach((it,i)=>{
+        const a=document.createElement("a");
+        a.className="icon-link";
+        a.href=it.url; a.target="_blank";
+        const img=document.createElement("img");
+        img.src=it.src; a.appendChild(img);
+        const ang = i/items.length*2*Math.PI - Math.PI/2;
+        a.style.left=`${C[0]+R*Math.cos(ang)}px`;
+        a.style.top =`${C[1]+R*Math.sin(ang)}px`;
+        a.style.setProperty("--dv",`${2+Math.random()*2}s`);
+        a.style.setProperty("--dh",`${3+Math.random()*2}s`);
+        a.style.setProperty("--dl",`${Math.random()*2}s`);
+        map.appendChild(a);
+        requestAnimationFrame(()=>a.style.visibility="visible");
+      });
+      window.addEventListener("resize",()=>{
+        // redraw curves
+        (function(s=0.45,n=40){
+          const g=svg.select("#curves"), data=[];
+          g.selectAll("*").remove();
+          for(let i=0;i<=n;i++){
+            const t=i/n;
+            data.push(
+              {x1:(1-s)*W+t*s*W,y1:0,    x2:W, y2:t*s*H},
+              {x1:t*s*W,        y1:H,    x2:0, y2:(1-s)*H+t*s*H}
+            );
+          }
+          g.selectAll("line").data(data).join("line")
+            .attr("class","curve-line")
+            .attr("x1",d=>d.x1).attr("y1",d=>d.y1)
+            .attr("x2",d=>d.x2).attr("y2",d=>d.y2);
+        })();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+{
+  "theme": {
+    "background": "#000000",
+    "foreground": "#FFFFFF",
+    "brightMagenta": "#FF00FF"
+  },
+  "files": [
+    {
+      "path": "/",
+      "name": "README.md",
+      "content": "Welcome to Tyler's Terminal\n\nGithub: https://github.com/z00100001\n\nLinkedIn: https://www.linkedin.com/in/tylerclanton\n\nUsage:\n  ls               - List files and project folders\n  cd <folder>      - Enter a project directory (e.g., cd 0x00)\n  cat <file>       - View file contents (e.g., cat README.md)\n  nano <file>      - Edit file contents (e.g., nano about.txt)\n  ./launcher.sh    - Launch the project\n\nTip:\n  Type 'ls' to get started."
+    }
+  ],
+  "projects": [
+    {
+      "id": "0x00",
+      "name": "Video Sharing Platform",
+      "url": "https://0θ.com/0x00",
+      "exec": "launcher.sh",
+      "files": [
+        {
+          "name": "README.md",
+          "content": "# Project 0x00 — Video Sharing Platform\n\nA private video hosting …"
+        }
+      ]
+    },
+    {
+      "id": "0x01",
+      "name": "HPCC Hackathon …",
+      "url": "https://0θ.com/0x01",
+      "exec": "launcher.sh",
+      "files": [
+        {
+          "name": "README.md",
+          "content": "# Project 0x01 — HPCC Systems Hackathon (2nd Place)\n\nPlaced 2nd …"
+        }
+      ]
+    },
+    {
+      "id": "0x02",
+      "name": "Monarch — Emotion AI …",
+      "url": "https://0θ.com/0x02",
+      "exec": "launcher.sh",
+      "files": [
+        {
+          "name": "README.md",
+          "content": "# Project 0x02 — Monarch (KSU C-Day Showcase)\n\nA locally-hosted …"
+        }
+      ]
+    }
+  ],
+  "easterEggs": {
+    "sudo make me a sandwich": "🕶️ Here’s your sandwich. Enjoy.",
+    "coffee": "Brewing coffee… Done.",
+    "fortune": [
+      "You will discover a hidden treasure.",
+      "Beware the purple dragon.",
+      "Today is a good day for code."
+    ],
+    "rm -rf /": "rm: it is dangerous to operate recursively on '/'"
+  },
+  "loadingSteps": [
+    "Resolving DNS for {host}...",
+    "Connecting to {host}:443...",
+    "Sending HTTP GET {path}...",
+    "HTTP/1.1 200 OK",
+    "Downloading assets...",
+    "Finalizing...",
+    "All set! Redirecting now."
+  ]
+}

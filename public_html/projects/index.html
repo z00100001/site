@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>0θ — Projects</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #111111; 
+      font-family: "Segoe UI", sans-serif;
+      color: #EEEEEE;
+      overflow-x: hidden;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      padding: 6px 12px;
+      background: #888888; 
+      color: #111111;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.2s ease;
+      z-index: 10;
+    }
+    .back-button:hover {
+      background: #777777; 
+    }
+
+
+    header {
+      text-align: center;
+      padding: 48px 20px 16px;
+    }
+    header h1 {
+      font-size: 3rem;
+      color: #888888; 
+      font-family: "Consolas", monospace;
+      margin-bottom: 8px;
+    }
+    header p {
+      color: #AAAAAA;
+      font-size: 1rem;
+    }
+
+  
+    #projectList {
+      width: 90%;
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding-bottom: 40px;
+    }
+
+
+    .project-entry {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      background: #1A1A1A; 
+      border-left: 4px solid #888888; 
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .project-entry:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+    }
+    .project-id {
+      background: #0F0F0F;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Consolas", monospace;
+      font-size: 1.1rem;
+      color: #888888; 
+    }
+    .project-details {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .project-details h2 {
+      font-size: 1.4rem;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+      font-family: "Segoe UI", sans-serif;
+    }
+    .project-details p {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #DDDDDD;
+      margin-bottom: 12px;
+    }
+    .project-details a {
+      align-self: flex-start;
+      padding: 8px 14px;
+      background: #888888; 
+      color: #111111;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.2s ease;
+    }
+    .project-details a:hover {
+      background: #777777;
+    }
+
+
+    @media (max-width: 600px) {
+      .project-entry {
+        grid-template-columns: 64px 1fr;
+      }
+      .project-id {
+        font-size: 1rem;
+      }
+      .project-details h2 {
+        font-size: 1.2rem;
+      }
+      .project-details p {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="https://0θ.com/" class="back-button">← Home</a>
+
+  <header>
+    <h1>Projects</h1>
+  </header>
+
+  <div id="projectList">
+
+    <div class="project-entry">
+      <div class="project-id">0x00</div>
+      <div class="project-details">
+        <h2>Video Sharing Platform</h2>
+        <p>
+          A private video hosting and streaming platform built using PHP, JSON, and classic HTML/CSS. Features include user authentication, per-user playlists,
+          YouTube-style embedding, and a JSON-powered storage system.
+        </p>
+        <a href="https://0θ.com/0x00" target="_blank">View Project</a>
+      </div>
+    </div>
+
+    <div class="project-entry">
+      <div class="project-id">0x01</div>
+      <div class="project-details">
+        <h2>HPCC Hackathon (2nd Place)</h2>
+        <p>
+          Awarded second place in the HPCC Social Good Hackathon. Created ECL scripts to transform missing-children datasets on a Thor cluster,
+          built a real-time ROXIE query interface, and developed an interactive JavaScript frontend with K-Means clustering visualizations.
+        </p>
+        <a href="https://0θ.com/0x01" target="_blank">View Project</a>
+        <br>
+        <a href="https://github.com/z00100001/Hackathon2025" target="_blank">View GitHub</a>
+
+      </div>
+    </div>
+
+    <div class="project-entry">
+      <div class="project-id">0x02</div>
+      <div class="project-details">
+        <h2>Monarch — Emotion AI</h2>
+        <p>
+          A local BERT-powered emotion detection platform. Detects sadness, worry, joy, distress, and anger entirely offline,
+          even on Raspberry Pi. Includes a Streamlit UI and radar-chart visualizations for PDF, DOCX, and TXT uploads.
+        </p>
+        <a href="https://0θ.com/0x02" target="_blank">View Project</a>
+        <br>
+        <a href="https://github.com/z00100001/Monarch" target="_blank">View GitHub</a>
+
+      </div>
+    </div>
+
+
+
+
+  </div>
+
+</body>
+</html>

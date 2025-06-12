@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Contact</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: "Segoe UI", sans-serif;
+      color: #EEE;
+    }
+
+    #waveCanvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 0;
+      display: block;
+    }
+
+
+    #sandBar {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 18vh;
+      background: linear-gradient(
+        to top,
+        #020116 0%,
+        #03021f 30%,
+        #0a0a0a 70%,
+        #000000 100%
+      );
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    #sandReflection {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 18vh;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0.15;
+      transform: scaleY(-1); 
+      filter: blur(1px);
+    }
+
+
+    #sandTexture {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 18vh;
+      background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAYAAACyNMRMAAAACXBIWXMAAAsTAAALEwEAmpwYAAABG0lEQVR4nO2XMW7DIBBFn3MHm5d7DM7pkkso0r2IVU+wCKSUu6EmxGrLXtNWLhj5sEu75Xn+vvTCZHB4bv/AI/DVOAJb4unRgHU9h2pSz8FSINrZVQhA2nMdRZvjduEFGLCzL3cYLgBzQLZInVktAoe7MMXBq+OypCChaOpCsF9xDKQkByYwxBaXYKCx+j0zRyS0vLIfxiY07dZRSnvnGTTVe9cgnAh9ix/CCIiCG9/6qWjhC4hWMI1rAqaoTMTJVoxBNsJu3AHgR6pEwxFKeprUSpHRoRgligpCBuXjGxxV9x5CMp9jKskKResQJkE2kZ43Pi3SCvRrWjb87mRoKcjRKAiGrRJK/BDPNTzQTaihAZ9IOAQnEQWhc7FBJGIwI+qEzAu9CFKhxFhyALQjIgfC+EBmOmg97BYjaIgJBfmt2IDfWhGuMY9j+ZKsN4DzyPyw+YGQAAAAASUVORK5CYII=") repeat;
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+
+    .icon-link {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #181818;
+      border: 2px solid #0af;
+      transform: translate(-50%, -50%) scale(0.9);
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      z-index: 4;
+      cursor: pointer;
+    }
+    .icon-link img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .icon-link:hover {
+      transform: translate(-50%, -50%) scale(1.2);
+      border-color: #0ff;
+      box-shadow: 0 0 16px rgba(0, 170, 255, 0.9);
+    }
+
+    .icon-label {
+      position: absolute;
+      font-size: 13px;
+      color: #0af;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 4px 10px;
+      border-radius: 4px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, 6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 5;
+      white-space: nowrap;
+    }
+    .icon-link:hover + .icon-label {
+      opacity: 1;
+      transform: translate(-50%, 4px);
+    }
+
+    #instructions {
+      position: absolute;
+      top: 12px;
+      left: 16px;
+      color: #999;
+      font-size: 14px;
+      z-index: 5;
+      user-select: none;
+    }
+    #instructions a {
+      color: #0af;
+      text-decoration: none;
+    }
+    #instructions a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="waveCanvas"></canvas>
+
+  <div id="sandBar"></div>
+
+  <canvas id="sandReflection"></canvas>
+
+  <div id="sandTexture"></div>
+
+  <div id="instructions">
+    Click icons to Interact
+  </div>
+
+  <a href="mailto:tclanton002@gmail.com" class="icon-link" id="iconEmail" target="_blank">
+    <img src="email.png" alt="Email">
+  </a>
+  <div class="icon-label" id="labelEmail">Email</div>
+
+  <a href="https://groupme.com/contact/124447711/PRLsHOVH" class="icon-link" id="iconGroupMe" target="_blank">
+    <img src="groupme.png" alt="GroupMe">
+  </a>
+  <div class="icon-label" id="labelGroupMe">GroupMe</div>
+
+  <a href="https://www.linkedin.com/in/tylerclanton/" class="icon-link" id="iconLinkedIn" target="_blank">
+    <img src="linkedin.png" alt="LinkedIn">
+  </a>
+  <div class="icon-label" id="labelLinkedIn">LinkedIn</div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+
+  <script>
+  (function() {
+
+    const waveCanvas = document.getElementById("waveCanvas");
+    const waveCtx    = waveCanvas.getContext("2d");
+
+    const sandRef    = document.getElementById("sandReflection");
+    const refCtx     = sandRef.getContext("2d");
+
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+    waveCanvas.width  = W;
+    waveCanvas.height = H;
+    sandRef.width     = W;
+    sandRef.height    = Math.floor(H * 0.18);
+
+    const sandBarHeight = H * 0.18;
+    const waveBaseY     = H * 0.62;
+    const waveAmp       = H * 0.045;
+    const waveLen       = W;
+    const waveSpeedA    = 0.0022;
+    const waveSpeedB    = 0.0014;
+    const waveSpeedC    = 0.0008;
+
+
+    const stars = [];
+    const STAR_COUNT = 250;
+    function initStars() {
+      stars.length = 0;
+      for (let i = 0; i < STAR_COUNT; i++) {
+        stars.push({
+          x: Math.random() * W,
+          y: Math.random() * H * 0.45,
+          radius: Math.random() * 1.3 + 0.3,
+          alpha: Math.random() * 0.7 + 0.3,
+          flickerOffset: Math.random() * Math.PI * 2
+        });
+      }
+    }
+    initStars();
+
+    function drawSkyGradient() {
+      const skyGrad = waveCtx.createRadialGradient(
+        W * 0.3, H * 0.2, H * 0.1,
+        W * 0.5, H * 0.5, H
+      );
+      skyGrad.addColorStop(0, "#00001a");
+      skyGrad.addColorStop(0.4, "#000010");
+      skyGrad.addColorStop(1, "#000005");
+      waveCtx.fillStyle = skyGrad;
+      waveCtx.fillRect(0, 0, W, H);
+    }
+
+    function drawStars() {
+      const time = performance.now() * 0.0005;
+      for (let s of stars) {
+        const flick = 0.4 + 0.6 * Math.sin(time * 0.35 + s.flickerOffset);
+        waveCtx.globalAlpha = s.alpha * flick;
+        waveCtx.fillStyle = "#dde";
+        waveCtx.beginPath();
+        waveCtx.arc(s.x, s.y, s.radius, 0, 2 * Math.PI);
+        waveCtx.fill();
+      }
+      waveCtx.globalAlpha = 1.0;
+    }
+
+    function drawMoon() {
+      const moonR = Math.min(W, H) * 0.055;
+      const moonX = W * 0.82, moonY = H * 0.18;
+
+      const corona = waveCtx.createRadialGradient(
+        moonX, moonY, moonR * 0.8,
+        moonX, moonY, moonR * 1.8
+      );
+      corona.addColorStop(0, "rgba(220,220,255,0.35)");
+      corona.addColorStop(0.7, "rgba(220,220,255,0.03)");
+      waveCtx.beginPath();
+      waveCtx.fillStyle = corona;
+      waveCtx.arc(moonX, moonY, moonR * 1.8, 0, 2 * Math.PI);
+      waveCtx.fill();
+
+      waveCtx.beginPath();
+      waveCtx.fillStyle = "#f0f0f8";
+      waveCtx.arc(moonX, moonY, moonR, 0, 2 * Math.PI);
+      waveCtx.fill();
+    }
+
+
+    let phaseA = 0, phaseB = Math.PI / 3, phaseC = Math.PI / 1.6;
+
+    function drawWaves() {
+      waveCtx.beginPath();
+      waveCtx.moveTo(0, waveBaseY);
+      for (let x = 0; x <= W; x += 1) {
+        const t = (x / waveLen) * 2 * Math.PI;
+        const y = waveBaseY + Math.sin(t + phaseA) * waveAmp;
+        waveCtx.lineTo(x, y);
+      }
+      waveCtx.strokeStyle = "#0cf";
+      waveCtx.lineWidth = 3.4;
+      waveCtx.globalAlpha = 0.85;
+      waveCtx.stroke();
+
+      waveCtx.beginPath();
+      waveCtx.moveTo(0, waveBaseY + waveAmp * 0.4);
+      for (let x = 0; x <= W; x += 1) {
+        const t = (x / waveLen) * 2 * Math.PI;
+        const y = waveBaseY + waveAmp * 0.6 + Math.sin(t + phaseB) * (waveAmp * 0.72);
+        waveCtx.lineTo(x, y);
+      }
+      waveCtx.strokeStyle = "#08a";
+      waveCtx.lineWidth = 2.6;
+      waveCtx.globalAlpha = 0.55;
+      waveCtx.stroke();
+
+      waveCtx.beginPath();
+      waveCtx.moveTo(0, waveBaseY + waveAmp * 0.8);
+      for (let x = 0; x <= W; x += 1) {
+        const t = (x / waveLen) * 2 * Math.PI;
+        const y = waveBaseY + waveAmp * 1.0 + Math.sin(t + phaseC) * (waveAmp * 0.4);
+        waveCtx.lineTo(x, y);
+      }
+      waveCtx.strokeStyle = "#04a";
+      waveCtx.lineWidth = 2.0;
+      waveCtx.globalAlpha = 0.35;
+      waveCtx.stroke();
+
+      waveCtx.globalAlpha = 1.0;
+
+      phaseA = (phaseA + waveSpeedA) % (2 * Math.PI);
+      phaseB = (phaseB + waveSpeedB) % (2 * Math.PI);
+      phaseC = (phaseC + waveSpeedC) % (2 * Math.PI);
+    }
+
+
+    const binaries = [];
+    const BINARY_COUNT = 100;
+    function initBinaries() {
+      binaries.length = 0;
+      for (let i = 0; i < BINARY_COUNT; i++) {
+        const px = Math.random() * W;
+        const py = waveBaseY + (Math.random() * waveAmp * 2 - waveAmp) + 24;
+        binaries.push({
+          x: px,
+          y: py,
+          char: Math.random() < 0.5 ? "0" : "1",
+          speedY: 0.08 + Math.random() * 0.45,
+          alpha: 0.25 + Math.random() * 0.45,
+          size: Math.random() * 12 + 9,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: 0
+        });
+      }
+    }
+    initBinaries();
+
+    function drawBinaries() {
+      const time = performance.now() * 0.00045;
+      for (let b of binaries) {
+        const flick = 0.5 + 0.5 * Math.sin(time + b.size);
+        waveCtx.globalAlpha = b.alpha * flick;
+        waveCtx.fillStyle = "#0af";
+        waveCtx.font = `${b.size}px Consolas, monospace`;
+        waveCtx.textAlign = "center";
+        waveCtx.textBaseline = "middle";
+        waveCtx.fillText(b.char, b.x, b.y);
+      }
+      waveCtx.globalAlpha = 1.0;
+    }
+
+    function updateBinaries() {
+      for (let b of binaries) {
+        b.vy += 0.001; 
+        b.x += b.vx;
+        b.y -= b.speedY + b.vy * 0.5;
+        if (
+          b.y < waveBaseY - waveAmp - 30 ||
+          b.x < -20 || b.x > W + 20
+        ) {
+          b.y = waveBaseY + waveAmp + (Math.random() * 30);
+          b.x = Math.random() * W;
+          b.char = Math.random() < 0.5 ? "0" : "1";
+          b.speedY = 0.08 + Math.random() * 0.45;
+          b.alpha = 0.25 + Math.random() * 0.45;
+          b.size = Math.random() * 12 + 9;
+          b.vx = (Math.random() - 0.5) * 0.3;
+          b.vy = 0;
+        }
+      }
+    }
+
+
+    function drawSandReflection() {
+      const refH = sandRef.height;
+      const refW = sandRef.width;
+      refCtx.clearRect(0, 0, refW, refH);
+
+      refCtx.beginPath();
+      for (let x = 0; x <= refW; x += 1) {
+        const t = (x / refW) * 2 * Math.PI;
+        const yOff = Math.sin(t + phaseA) * (refH * 0.05);
+        refCtx.lineTo(x, refH * 0.2 + yOff);
+      }
+      refCtx.lineTo(refW, refH);
+      refCtx.lineTo(0, refH);
+      refCtx.closePath();
+      refCtx.fillStyle = "rgba(0, 25, 50, 0.15)";
+      refCtx.fill();
+    }
+
+    function animate() {
+      drawSkyGradient();
+      drawStars();
+      drawMoon();
+      drawWaves();
+      drawBinaries();
+      updateBinaries();
+      drawSandReflection();
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+
+    let repelFlag = false;
+    let mx = 0, my = 0;
+    window.addEventListener("mousemove", (e) => {
+      mx = e.clientX;
+      my = e.clientY;
+      repelFlag = true;
+    });
+    (function repelLoop() {
+      if (repelFlag) {
+        for (let b of binaries) {
+          const dx = b.x - mx;
+          const dy = b.y - my;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 180) {
+            const push = ((180 - dist) / 180) * 0.4;
+            b.vx += (dx / dist) * push;
+            b.vy += (dy / dist) * push;
+          }
+        }
+        repelFlag = false;
+      }
+      requestAnimationFrame(repelLoop);
+    })();
+
+
+    window.addEventListener("resize", () => {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      waveCanvas.width = W;
+      waveCanvas.height = H;
+      sandRef.width = W;
+      sandRef.height = Math.floor(H * 0.18);
+      initStars();
+      initBinaries();
+      positionIcons();
+    });
+
+    function positionIcons() {
+      const sandTop = H - sandBarHeight;
+      const sandMid = sandTop + sandBarHeight * 0.55;
+
+      const iconIDs = ["iconEmail", "iconGroupMe", "iconLinkedIn"];
+      const labelIDs = ["labelEmail", "labelGroupMe", "labelLinkedIn"];
+      const count = iconIDs.length;
+
+      for (let i = 0; i < count; i++) {
+        const px = (i + 0.5) * (W / count);
+        const iconEl = document.getElementById(iconIDs[i]);
+        const labelEl = document.getElementById(labelIDs[i]);
+        iconEl.style.left = px + "px";
+        iconEl.style.top  = (sandMid - 12) + "px";
+        labelEl.style.left = px + "px";
+        labelEl.style.top  = (sandMid + 36) + "px";
+      }
+    }
+    window.addEventListener("load", positionIcons);
+    window.addEventListener("resize", positionIcons);
+
+  })();
+  </script>
+</body>
+</html>

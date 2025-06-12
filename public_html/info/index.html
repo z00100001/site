@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>0θ — About</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+  
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0f17;
+      font-family: "Segoe UI", sans-serif;
+      color: #e0e8f8;
+    }
+
+
+    canvas#bgCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0a0f17;
+      z-index: 0;
+      display: block;
+    }
+
+    .content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 640px;
+      width: 90%;
+      padding: 32px;
+      background: rgba(5, 15, 30, 0.9);
+      border-radius: 8px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      z-index: 1;
+      overflow-y: auto;
+      max-height: 80vh;
+    }
+    .content h1 {
+      font-size: 2.2rem;
+      color: #0af;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .content h2 {
+      font-size: 1.5rem;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: #a8e0ff;
+      border-bottom: 1px solid #0af;
+      padding-bottom: 4px;
+    }
+    .content p, .content ul {
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .content ul {
+      margin-left: 20px;
+      list-style: disc;
+    }
+    .content code {
+      background: rgba(100, 180, 240, 0.1);
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #80b8f0;
+      font-family: Consolas, monospace;
+      font-size: 0.95rem;
+    }
+    .content a {
+      color: #80b8f0;
+      text-decoration: underline;
+    }
+    .content a:hover {
+      color: #b0e8ff;
+    }
+
+
+    .coord-label {
+      position: absolute;
+      color: #888;
+      font-size: 12px;
+      font-family: monospace;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 5s linear;
+      z-index: 2;
+    }
+
+
+    #btnGameMode {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(10, 170, 240, 0.2);
+      color: #e0e8f8;
+      border: 1px solid #0af;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      z-index: 3;
+    }
+    #btnGameMode:hover {
+      background: rgba(10, 170, 240, 0.4);
+      transform: scale(1.05);
+    }
+
+    #gameControls {
+      position: absolute;
+      top: 56px;
+      right: 16px;
+      background: rgba(5, 15, 30, 0.95);
+      border: 1px solid #0af;
+      border-radius: 8px;
+      padding: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 3;
+      max-width: 240px;
+    }
+    #gameControls label {
+      font-size: 0.85rem;
+      color: #e0e8f8;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    #gameControls input[type="range"],
+    #gameControls input[type="color"],
+    #gameControls input[type="number"] {
+      width: 100%;
+      margin-top: 4px;
+      background: #1a1f2e;
+      border: 1px solid #0af;
+      border-radius: 4px;
+      padding: 2px;
+      color: #e0e8f8;
+    }
+    #gameControls input[type="checkbox"] {
+      margin-right: 6px;
+    }
+    #gameControls button {
+      background: rgba(10, 170, 240, 0.2);
+      color: #e0e8f8;
+      border: 1px solid #0af;
+      border-radius: 4px;
+      padding: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    #gameControls button:hover {
+      background: rgba(10, 170, 240, 0.4);
+      transform: scale(1.05);
+    }
+
+
+    @media (max-width: 500px) {
+      .content {
+        padding: 20px;
+      }
+      .content h1 {
+        font-size: 1.8rem;
+      }
+      .content h2 {
+        font-size: 1.3rem;
+      }
+      .content p, .content ul {
+        font-size: 0.9rem;
+      }
+      #btnGameMode {
+        top: 8px;
+        right: 8px;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+      }
+      #gameControls {
+        top: 48px;
+        right: 8px;
+        padding: 10px;
+        max-width: 200px;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+
+  <div id="coordMap"></div>
+
+  <button id="btnGameMode">Sandbox</button>
+
+  <div id="gameControls">
+    <label>
+      Background Color:
+      <input type="color" id="bgColorPicker" value="#0a0f17"/>
+    </label>
+    <label>
+      Particle Color:
+      <input type="color" id="colorPicker" value="#0aaff0"/>
+    </label>
+    <label>
+      Line Color:
+      <input type="color" id="lineColorPicker" value="#0aaff0"/>
+    </label>
+    <label>
+      Binary Color:
+      <input type="color" id="binaryColorPicker" value="#0aaff0"/>
+    </label>
+    <label>
+      Particle Count:
+      <input type="number" id="countInput" min="10" max="300" step="10" value="80"/>
+    </label>
+    <label>
+      Particle Speed:
+      <input type="range" id="speedRange" min="0.5" max="5.0" step="0.1" value="1.0"/>
+    </label>
+    <label>
+      Line Distance:
+      <input type="range" id="lineDistanceRange" min="50" max="300" step="10" value="120"/>
+    </label>
+    <label>
+      Binary Lifetime (ms):
+      <input type="range" id="binaryLifetimeRange" min="500" max="5000" step="100" value="2000"/>
+    </label>
+    <label>
+      <input type="checkbox" id="toggleBinaries" checked/>
+      Enable Binary Droplets
+    </label>
+    <label>
+      <input type="checkbox" id="toggleCoords" checked/>
+      Show Coordinate Labels
+    </label>
+    <button id="btnAddMore">Add 20 Particles</button>
+    <button id="btnResetAll">Reset to Default</button>
+  </div>
+
+  <div class="content" id="aboutContent">
+    <h1>About 0θ</h1>
+    
+    <h2>Who I Am</h2>
+    <p>Hello! I’m <strong>Tyler</strong>, a computer science student and a math enthusiast. I spend my time building, learning, and problem-solving — whether it’s training emotion recognition models, writing backend systems, or puzzling through problems most people wouldn’t touch unless it was graded. (Looking at you, Putnam.)</p>
+    <p>What drives me isn’t just the code or the equations — it’s the systems thinking behind them. I’m fascinated by how abstract concepts like combinatorics or probability can guide the design of smarter tools, more efficient algorithms, and better questions. That curiosity has led me through NLP pipelines, neural networks, and the occasional whiteboard scribble at 2 a.m.</p>
+    <p>I don’t claim to know everything — far from it. But I treat every project, paper, and setback as a way to get better. I’m here to grow, to ship ideas, and to figure out what I can do when I go all in.</p>
+
+    <h2>Why “0θ”?</h2>
+    <p>The name <code>0θ</code> (“zero-theta”) symbolizes:</p>
+    <ul>
+      <li><code>0</code> → Computation: binary logic, registers, gates, and virtual machines.</li>
+      <li><code>θ</code> → Mathematics: angles, waves, transforms, and continuous analysis.</li>
+    </ul>
+    <p>Together, they reflect what I’m into: the space between machines and math.</p>
+    <h3>The Story of <code>0</code> (Computation)</h3>
+<p>The digit <code>0</code> is more than just “off” in binary. Historically, it represents the very moment that continuous signals were mapped into discrete form:</p>
+<ul>
+  <li>
+    <strong>Shannon’s Quantization:</strong> In the 1940s, Claude Shannon proved that any analog waveform could be sampled, quantized, and faithfully reconstructed using sequences of 0s and 1s. This breakthrough showed us that continuous audio, images, and video could live entirely inside digital circuits.
+  </li>
+  <li>
+    <strong>Early Logic Gates & Flip-Flops:</strong> At the physical level, 0 stands for 0 V (low) and 1 for +V (high). Flip-flops, registers, and logic gates literally toggle between these states, underpinning every modern CPU.
+  </li>
+  <li>
+    <strong>Turing’s Universal Machine:</strong> Alan Turing’s conceptual “machine” read and wrote symbols (0s and 1s) on an infinite tape—showing how any algorithm could be executed by sequences of bits, regardless of whether that algorithm solved a purely mathematical problem or powered a simple computer program.
+  </li>
+</ul>
+<p>When you see a <code>0</code> in “0θ,” think of the entire digital stack: from physics (transistors switching low) to boolean logic (gates producing 0 or 1) to high-level software (every compiled program ultimately becomes 0s and 1s). It’s the language of the machine.</p>
+
+<h3>The Story of <code>θ</code> (Mathematics)</h3>
+<p>The Greek letter <code>θ</code> has long been a symbol for angles, rotations, and trigonometric functions. Its story stretches from ancient geometry to modern computational analysis:</p>
+<ul>
+  <li>
+    <strong>Euclid’s Geometry & Early Trigonometry:</strong> In classical geometry, measuring angles was foundational: θ measured arc lengths on circles. By the time of Hipparchus (∼2nd century BC), chords and arcs were tabulated—precursors to sine and cosine tables that θ would later denote.
+  </li>
+  <li>
+    <strong>Calculus & Waves:</strong> When Newton and Leibniz formalized calculus, they showed how derivatives of sin(θ) and cos(θ) give new insights into periodic motion. In physics, these θ-based functions model everything from pendulums to alternating current.
+  </li>
+  <li>
+    <strong>Fourier Transforms & Signal Analysis:</strong> Joseph Fourier discovered that any periodic function could be expressed as an infinite sum of sin(nθ) and cos(nθ). Today, θ represents the continuous phase in Fourier analysis—at the heart of audio processing, image compression, and spectral methods.
+  </li>
+</ul>
+<p>When you spot a <code>θ</code> in “0θ,” it stands for those continuous ideas: angles, waves, transforms, and all the calculus that underlies scientific modeling. It’s the language of mathematics.</p>
+
+    
+
+
+    <h2>Bridging Bits &amp; Waves</h2>
+    <p>
+      Now that we’ve seen how “<code>0</code>” (bits, logic) and “<code>θ</code>” (angles, waves) each carry their own story, let’s look at some everyday examples of how these two worlds meet:
+    </p>
+
+    <h3>1. Sampling a Sine Wave → From “θ” to “0”</h3>
+    <p>
+      Imagine you want to play a pure sine-wave tone on your smartphone:
+    </p>
+    <ul>
+      <li>
+        <strong>In math:</strong> A perfect sine is <code>y(θ) = sin(θ)</code>, where θ smoothly goes from 0 to 2π. Visually, it’s a smooth wave.
+      </li>
+      <li>
+        <strong>In your phone:</strong> You can’t feed it infinitely many points. Instead, you “sample” that sine at discrete times (e.g. 44 100 times each second). Each sample becomes a number—say a 16-bit integer like <code>0x3A5F</code>—which is ultimately stored as a pattern of 0s and 1s.
+      </li>
+      <li>
+        <strong>Result:</strong> Although your phone stores only bits (“<code>0</code>” and “<code>1</code>”), those bits recreate an almost perfect sine in your speaker cone. So a continuous, smooth curve (θ) gets turned into discrete data (0).
+      </li>
+    </ul>
+
+    <h3>2. Fixed-Point &amp; Floating-Point → Approximating “θ” with “0”</h3>
+    <p>
+      Whenever you ask your program to compute <code>sin(1.047)</code> (i.e. 60° in radians), you’re bridging a continuous angle into bits:
+    </p>
+    <ul>
+      <li>
+        <strong>Floating-Point:</strong>  
+        A 64-bit “double” keeps a sign, exponent, and mantissa—so it can represent 1.047000… (and beyond). Underneath, every digit in that representation is made of “<code>0</code>”s and “<code>1</code>”s.
+      </li>
+      <li>
+        <strong>Fixed-Point:</strong>  
+        Alternatively, you could multiply 1.047 by 2<sup>16</sup> and store the result (≈ 68511) as an integer. That integer is still just bits, but it represents a snapshot of the continuous angle.
+      </li>
+      <li>
+        <strong>Why it matters:</strong> For ultra-low-power devices (microcontrollers, DSP chips) you might choose fixed-point math—because it’s faster and uses fewer transistors than floating point. In both cases, “θ” becomes “0”s and “1”s that the hardware flips on or off.
+      </li>
+    </ul>
+
+    <h3>3. Logic Gates &amp; Geometry → Circuits that “Know” Math</h3>
+    <p>
+      When you build a small hardware block—say, an 8-bit adder or a sine-approximation module—you’re literally wiring together transistors (bits) to follow a mathematical rule (angles, waves):
+    </p>
+    <ul>
+      <li>
+        <strong>Adders:</strong>  
+        An 8-bit adder takes two 8-bit inputs—each bit is “<code>0</code>” or “<code>1</code>”—and produces an 8-bit sum plus a carry. From a math perspective, you’re performing  
+        <code>Sum = A + B (mod 256)</code>  
+        but implemented entirely with logic gates.
+      </li>
+      <li>
+        <strong>Sine ROM (Read-Only Memory):</strong>  
+        Suppose you build a small lookup table in hardware where each address (0 through 255) maps to a precomputed value of <code>sin(θ)</code> sampled at 256 points. To compute sin(θ) in your circuit, you feed θ’s 8-bit index into that ROM—again, bits produce a waveform.
+      </li>
+      <li>
+        <strong>Digital Filters:</strong>  
+        A real-time audio filter might multiply incoming samples (bits) by coefficients derived using continuous math (θ, integrals, Fourier transforms). The hardware “knows” those math relationships but only ever works in bits.
+      </li>
+    </ul>
+
+    <h3>4. Complex Numbers → Merging “0” with “θ” in One Expression</h3>
+    <p>
+      Complex numbers are an elegant way to merge discrete storage and continuous geometry in a single formula:
+    </p>
+    <ul>
+      <li>
+        <strong>In math:</strong>  
+        <code>e<sup>iθ</sup> = cos(θ) + i sin(θ)</code>. As θ moves from 0 to 2π, this point moves around the unit circle—pure continuous motion.
+      </li>
+      <li>
+        <strong>In code:</strong>  
+        You store <code>θ</code> as a 32-bit or 64-bit floating-point value (bits!). Then, to get <code>e<sup>iθ</sup></code>, you compute <code>cos(θ)</code> and <code>sin(θ)</code>, each implemented by bit-level approximations (CORDIC, polynomial fits, or table lookups).
+      </li>
+      <li>
+        <strong>Result:</strong>  
+        What started as a continuous rotation on paper is implemented by flipping transistors on/off in the ALU, yet still “feels” like continuous geometry to your program.
+      </li>
+    </ul>
+
+    <p>
+      In every example above, “<code>0</code>” (bits, logic) and “<code>θ</code>” (angles, waves) depend on each other.  
+      By calling this site <strong>0θ</strong>, we celebrate that unity:
+      <br>
+      – The discrete world of CPUs, gates, and memory (all 0s and 1s) is built to serve continuous mathematical ideas (angles, calculus, signals).  
+      <br>
+      – And those continuous ideas (waves, geometry, transforms) get translated into optimized bit-level code and hardware.
+    </p>
+
+    <h2>Putting It All Into Practice</h2>
+    <p>
+      As you explore further—whether in the Mind Map, the Terminal, or Projects—you’ll see this dance between bits and waves everywhere. Whenever you hover over a node like “Fourier Transform,” you’re stepping into a world where continuous functions become streams of bits, and vice versa.
+    </p>
+    <p>
+      Feel free to experiment, play with the Terminal, or even play with the sandbox within this webpage! Whenever you see a waveform or an interactive circuit-like widget, remember: behind each flickering pixel, discrete bits (0s and 1s) and continuous math (θ) collaborate to bring it to life.
+    </p>
+    <a href="https://0θ.com/" class="back-button">← Back to Home</a>
+  </div>
+
+  
+  <script>
+    (function() {
+      const canvas = document.getElementById("bgCanvas"),
+            ctx = canvas.getContext("2d"),
+            coordMap = document.getElementById("coordMap"),
+            btnGameMode = document.getElementById("btnGameMode"),
+            gameControls = document.getElementById("gameControls"),
+            bgColorPicker = document.getElementById("bgColorPicker"),
+            colorPicker = document.getElementById("colorPicker"),
+            lineColorPicker = document.getElementById("lineColorPicker"),
+            binaryColorPicker = document.getElementById("binaryColorPicker"),
+            countInput = document.getElementById("countInput"),
+            speedRange = document.getElementById("speedRange"),
+            lineDistanceRange = document.getElementById("lineDistanceRange"),
+            binaryLifetimeRange = document.getElementById("binaryLifetimeRange"),
+            toggleBinaries = document.getElementById("toggleBinaries"),
+            toggleCoords = document.getElementById("toggleCoords"),
+            btnAddMore = document.getElementById("btnAddMore"),
+            btnResetAll = document.getElementById("btnResetAll"),
+            aboutContent = document.getElementById("aboutContent");
+
+      let W = window.innerWidth, H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+
+      const DEFAULTS = {
+        backgroundColor: "#0a0f17",
+        particleColor: "#0aaff0",
+        lineColor: "#0aaff0",
+        binaryColor: "#0aaff0",
+        particleCount: 80,
+        speedMultiplier: 1.0,
+        lineDistance: 120,
+        binaryLifetime: 2000,
+        binariesEnabled: true,
+        coordsEnabled: true
+      };
+      let backgroundColor = DEFAULTS.backgroundColor,
+          particleColor = DEFAULTS.particleColor,
+          lineColor = DEFAULTS.lineColor,
+          binaryColor = DEFAULTS.binaryColor,
+          PARTICLE_COUNT = DEFAULTS.particleCount,
+          speedMultiplier = DEFAULTS.speedMultiplier,
+          LINE_DISTANCE = DEFAULTS.lineDistance,
+          BINARY_LIFETIME = DEFAULTS.binaryLifetime,
+          binariesEnabled = DEFAULTS.binariesEnabled,
+          coordsEnabled = DEFAULTS.coordsEnabled;
+
+      const particles = [];
+      const binaries = [];
+
+      class Particle {
+        constructor() { this.reset(); }
+        reset() {
+          this.x = Math.random() * W;
+          this.y = Math.random() * H;
+          this.vx = (Math.random() - 0.5) * 0.6;
+          this.vy = (Math.random() - 0.5) * 0.6;
+          this.size = 2 + Math.random() * 2;
+          this.phase = Math.random() * 2 * Math.PI;
+          this.baseSpeed = 0.002 + Math.random() * 0.003;
+        }
+        update(mouse) {
+          this.phase += this.baseSpeed * speedMultiplier;
+          this.x += (this.vx + Math.cos(this.phase) * 0.3) * speedMultiplier;
+          this.y += (this.vy + Math.sin(this.phase) * 0.3) * speedMultiplier;
+
+          if (this.x < -20) this.x = W + 20;
+          if (this.x > W + 20) this.x = -20;
+          if (this.y < -20) this.y = H + 20;
+          if (this.y > H + 20) this.y = -20;
+
+          const dx = this.x - mouse.x,
+                dy = this.y - mouse.y,
+                dist = Math.hypot(dx, dy);
+          if (dist < 80) {
+            const push = ((80 - dist) / 80) * 0.6 * speedMultiplier;
+            this.vx += (dx / dist) * push;
+            this.vy += (dy / dist) * push;
+
+            if (binariesEnabled) {
+              const now = performance.now();
+              binaries.push({
+                x: this.x,
+                y: this.y,
+                char: Math.random() < 0.5 ? "0" : "1",
+                start: now,
+                vx: (Math.random() - 0.5) * 0.2,
+                vy: -(0.05 + Math.random() * 0.3),
+                alpha: 1
+              });
+            }
+          }
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
+          ctx.fillStyle = particleColor;
+          ctx.fill();
+        }
+      }
+
+      function initParticles(count) {
+        particles.length = 0;
+        for (let i = 0; i < count; i++) {
+          particles.push(new Particle());
+        }
+      }
+      initParticles(PARTICLE_COUNT);
+
+      const mouse = { x: W / 2, y: H / 2 };
+      window.addEventListener("mousemove", e => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+      });
+
+      const coordList = [];
+      function spawnCoord() {
+        if (!coordsEnabled) return;
+        if (coordList.length > 6) return;
+        const nd = particles[Math.floor(Math.random() * particles.length)];
+        const el = document.createElement("div");
+        el.className = "coord-label";
+        coordMap.appendChild(el);
+        coordList.push({ node: nd, el });
+        requestAnimationFrame(() => el.style.opacity = 0.3);
+        setTimeout(() => {
+          el.style.opacity = 0;
+          setTimeout(() => {
+            el.remove();
+            const idx = coordList.findIndex(c => c.el === el);
+            if (idx !== -1) coordList.splice(idx, 1);
+          }, 2000);
+        }, 3000);
+      }
+      setInterval(spawnCoord, 3000);
+
+      function animate() {
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, W, H);
+
+        for (let p of particles) {
+          p.update(mouse);
+          p.draw();
+        }
+
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < LINE_DISTANCE) {
+              const alpha = 1 - dist / LINE_DISTANCE;
+              ctx.strokeStyle = hexToRGBA(lineColor, alpha * 0.4);
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        const now = performance.now();
+        for (let i = binaries.length - 1; i >= 0; i--) {
+          const b = binaries[i];
+          const age = now - b.start;
+          if (age > BINARY_LIFETIME) {
+            binaries.splice(i, 1);
+            continue;
+          }
+          b.alpha = 1 - age / BINARY_LIFETIME;
+          b.x += b.vx * speedMultiplier;
+          b.y += b.vy * speedMultiplier;
+          ctx.globalAlpha = b.alpha;
+          ctx.fillStyle = binaryColor;
+          ctx.font = `12px Consolas, monospace`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(b.char, b.x, b.y);
+          ctx.globalAlpha = 1;
+        }
+
+        coordList.forEach(c => {
+          c.el.textContent = `(${c.node.x.toFixed(1)},${c.node.y.toFixed(1)})`;
+          c.el.style.left = `${c.node.x + 8}px`;
+          c.el.style.top = `${c.node.y - 8}px`;
+        });
+
+        requestAnimationFrame(animate);
+      }
+      animate();
+
+      window.addEventListener("resize", () => {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+        initParticles(PARTICLE_COUNT);
+      });
+
+      function hexToRGBA(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+
+      let gameModeOn = false;
+      btnGameMode.addEventListener("click", () => {
+        gameModeOn = !gameModeOn;
+        if (gameModeOn) {
+          gameControls.style.display = "flex";
+          aboutContent.style.display = "none";
+          btnGameMode.textContent = "Close Sandbox";
+        } else {
+          gameControls.style.display = "none";
+          aboutContent.style.display = "block";
+          btnGameMode.textContent = "Sandbox";
+        }
+      });
+
+      bgColorPicker.addEventListener("input", () => {
+        backgroundColor = bgColorPicker.value;
+      });
+      colorPicker.addEventListener("input", () => {
+        particleColor = colorPicker.value;
+      });
+      lineColorPicker.addEventListener("input", () => {
+        lineColor = lineColorPicker.value;
+      });
+      binaryColorPicker.addEventListener("input", () => {
+        binaryColor = binaryColorPicker.value;
+      });
+      countInput.addEventListener("change", () => {
+        const newCount = parseInt(countInput.value);
+        if (!isNaN(newCount) && newCount >= 10 && newCount <= 300) {
+          PARTICLE_COUNT = newCount;
+          initParticles(PARTICLE_COUNT);
+        }
+      });
+      speedRange.addEventListener("input", () => {
+        speedMultiplier = parseFloat(speedRange.value);
+      });
+      lineDistanceRange.addEventListener("input", () => {
+        LINE_DISTANCE = parseInt(lineDistanceRange.value);
+      });
+      binaryLifetimeRange.addEventListener("input", () => {
+        BINARY_LIFETIME = parseInt(binaryLifetimeRange.value);
+      });
+      toggleBinaries.addEventListener("change", () => {
+        binariesEnabled = toggleBinaries.checked;
+      });
+      toggleCoords.addEventListener("change", () => {
+        coordsEnabled = toggleCoords.checked;
+      });
+      btnAddMore.addEventListener("click", () => {
+        for (let i = 0; i < 20; i++) {
+          particles.push(new Particle());
+        }
+        PARTICLE_COUNT = particles.length;
+        countInput.value = PARTICLE_COUNT;
+      });
+      btnResetAll.addEventListener("click", () => {
+        backgroundColor = DEFAULTS.backgroundColor;
+        particleColor = DEFAULTS.particleColor;
+        lineColor = DEFAULTS.lineColor;
+        binaryColor = DEFAULTS.binaryColor;
+        PARTICLE_COUNT = DEFAULTS.particleCount;
+        speedMultiplier = DEFAULTS.speedMultiplier;
+        LINE_DISTANCE = DEFAULTS.lineDistance;
+        BINARY_LIFETIME = DEFAULTS.binaryLifetime;
+        binariesEnabled = DEFAULTS.binariesEnabled;
+        coordsEnabled = DEFAULTS.coordsEnabled;
+
+        bgColorPicker.value = DEFAULTS.backgroundColor;
+        colorPicker.value = DEFAULTS.particleColor;
+        lineColorPicker.value = DEFAULTS.lineColor;
+        binaryColorPicker.value = DEFAULTS.binaryColor;
+        countInput.value = DEFAULTS.particleCount;
+        speedRange.value = DEFAULTS.speedMultiplier;
+        lineDistanceRange.value = DEFAULTS.lineDistance;
+        binaryLifetimeRange.value = DEFAULTS.binaryLifetime;
+        toggleBinaries.checked = DEFAULTS.binariesEnabled;
+        toggleCoords.checked = DEFAULTS.coordsEnabled;
+
+        binaries.length = 0;
+        coordList.forEach(c => c.el.remove());
+        coordList.length = 0;
+
+        initParticles(PARTICLE_COUNT);
+      });
+    })();
+  </script>
+</body>
+</html>
