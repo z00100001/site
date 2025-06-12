@@ -22,7 +22,7 @@ Together, they symbolize the bridge between low-level hardware and high-level ma
 ## Why “0θ”?
 
 - **0 → Computation**  
-  From my first “Hello, World!” in assembly to designing CPU pipelines, I’ve been captivated by how every algorithm, every data structure, and every machine-level instruction ultimately reduces to patterns of 0s and 1s. In circuits, “0” means low voltage; in software, it’s the off-bit in Boolean logic; in theory, it’s the foundation of Turing’s machine.
+  From my first “Hello, World!” in assembly to designing NLP pipelines, I’ve been captivated by how every algorithm, every data structure, and every machine-level instruction ultimately reduces to patterns of 0s and 1s. In circuits, “0” means low voltage; in software, it’s the off-bit in Boolean logic; in theory, it’s the foundation of Turing’s machine.
 
 - **θ → Mathematics**  
   Equally, my curiosity has always been drawn to continuous phenomena: the elegance of sin θ and cos θ in modeling waves, and the power of θ in expressing rotations. From counting paths in a graph to tracing circles in the complex plane, θ has been my constant companion on every mathematical adventure.
